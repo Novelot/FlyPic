@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">飞图浏览</string>
+    <string name="title_section1">相册</string>
+    <string name="title_section2">活动</string>
+    <string name="title_section3">发现</string>
+    <string name="action_settings">设置</string>
+    <string name="drawer_open">drawer_open</string>
+    <string name="drawer_close">drawer_close</string>
+    <string name="contentDescription">contentDescription</string>
+    <string name="discard">discard</string>
+
+</resources>
