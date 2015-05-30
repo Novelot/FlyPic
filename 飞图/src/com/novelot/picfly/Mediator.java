@@ -40,6 +40,9 @@ public class Mediator {
 		FragmentManager fragmentManager = mFragmentManager;
 		if (mFragments != null && mFragments.size() > index) {
 			Fragment fragment = mFragments.get(index);
+			if (fragment instanceof AlbumFragment) {
+				((AlbumFragment) fragment).setToolbar(mToolbar);
+			}
 			fragmentManager.beginTransaction()
 					.replace(R.id.container, fragment).commit();
 		}

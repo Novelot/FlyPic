@@ -6,17 +6,22 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
 import android.view.ActionMode;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView.MultiChoiceModeListener;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 
@@ -34,6 +39,7 @@ public class AlbumFragment extends Fragment /*
 	private Cursor mCursor;
 	private AlbumCursorAdapter mAdapter;
 	private GridView gridView;
+	private Toolbar mToolbar;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +51,7 @@ public class AlbumFragment extends Fragment /*
 		mAdapter = new AlbumCursorAdapter(getActivity(), mCursor);
 
 		// getLoaderManager().initLoader(0, null, this);
+		this.setHasOptionsMenu(true);
 	}
 
 	@Override
@@ -81,6 +88,8 @@ public class AlbumFragment extends Fragment /*
 
 				@Override
 				public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+					if (mToolbar != null)
+						menu = mToolbar.getMenu();
 					MenuInflater inflater = mode.getMenuInflater();
 					inflater.inflate(R.menu.menu_choice_items, menu);
 					return true;
@@ -100,8 +109,9 @@ public class AlbumFragment extends Fragment /*
 				@Override
 				public void onItemCheckedStateChanged(ActionMode mode,
 						int position, long id, boolean checked) {
-					mode.setTitle("Selected (" + gridView.getCheckedItemCount()
-							+ ")");
+					if (mToolbar != null)
+						mToolbar.setTitle("Selected ("
+								+ gridView.getCheckedItemCount() + ")");
 				}
 			});
 		}
@@ -120,6 +130,34 @@ public class AlbumFragment extends Fragment /*
 			mCursor.close();
 			mCursor = null;
 		}
+	}
 
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		inflater.inflate(R.menu.main, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (mToolbar != null)
+			mToolbar.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+
+				@Override
+				public boolean onMenuItemClick(MenuItem item) {
+					switch (item.getItemId()) {
+					case R.id.action_settings:
+						Toast.makeText(getActivity(), "Menu",
+								Toast.LENGTH_SHORT).show();
+						break;
+					}
+					return true;
+				}
+			});
+		return super.onOptionsItemSelected(item);
+	}
+
+	public void setToolbar(Toolbar toolbar) {
+		mToolbar = toolbar;
 	}
 }
