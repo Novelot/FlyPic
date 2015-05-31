@@ -6,17 +6,15 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
 import android.view.ActionMode;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView.MultiChoiceModeListener;
 import android.widget.AdapterView;
@@ -37,7 +35,7 @@ public class AlbumFragment extends Fragment /*
 											 */{
 
 	private Cursor mCursor;
-	private AlbumCursorAdapter mAdapter;
+	private CursorAdapter mAdapter;
 	private GridView gridView;
 	private Toolbar mToolbar;
 
@@ -49,6 +47,7 @@ public class AlbumFragment extends Fragment /*
 				null);
 
 		mAdapter = new AlbumCursorAdapter(getActivity(), mCursor);
+		// mAdapter = new AlbumUILAdapter(getActivity(), mCursor);
 
 		// getLoaderManager().initLoader(0, null, this);
 		this.setHasOptionsMenu(true);

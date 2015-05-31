@@ -22,6 +22,7 @@ public class Mediator {
 	private Toolbar mToolbar;
 	private DrawerLayout mDrawerLayout;
 	private MainActivity activity;
+	private int mFragmentIndex;
 	private static final String[] TITLES = { "相册", "活动", "发现" };
 
 	public Mediator(MainActivity activity, FragmentManager fragmentManager,
@@ -37,6 +38,7 @@ public class Mediator {
 	}
 
 	public void navigSelectedItem(int index) {
+		mFragmentIndex = index;
 		FragmentManager fragmentManager = mFragmentManager;
 		if (mFragments != null && mFragments.size() > index) {
 			Fragment fragment = mFragments.get(index);
@@ -53,5 +55,14 @@ public class Mediator {
 		if (mDrawerLayout != null)
 			mDrawerLayout.closeDrawer(activity
 					.findViewById(R.id.navigation_drawer));
+	}
+
+	/**
+	 * 获取当前是哪个fragment
+	 * 
+	 * @return
+	 */
+	public int getFragmentIndex() {
+		return mFragmentIndex;
 	}
 }

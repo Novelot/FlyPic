@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
 
+import com.novelot.piccache.BitmapDecoder;
 import com.novelot.piccache.CacheInfo;
 import com.novelot.util.MD5;
 
@@ -109,6 +110,7 @@ public class AlbumCursorAdapter extends CursorAdapter {
 				is.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				return null;
 			}
 			int height = opts.outHeight;
 			int width = opts.outWidth;
@@ -136,12 +138,16 @@ public class AlbumCursorAdapter extends CursorAdapter {
 				is.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				return null;
 			}
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			return null;
 		}
 		return bitmap;
+
+		// return BitmapDecoder.decode(resolver, uri, ivWidth, ivHeight);
 	}
 
 	/**

@@ -9,7 +9,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
+import android.content.ComponentCallbacks2;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -42,6 +45,36 @@ public class MainActivity extends ActionBarActivity {
 		Log.v(TAG, "onDestroy");
 		super.onDestroy();
 		mMediator = null;
+
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		SharedPreferences sp = getSharedPreferences("flypic", MODE_PRIVATE);
+		Editor editor = sp.edit();
+		editor.putInt("fragment_index", mMediator.getFragmentIndex());
+		editor.commit();
+		editor = null;
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		SharedPreferences sp = getSharedPreferences("flypic", MODE_PRIVATE);
+		int fragmentIndex = sp.getInt("fragment_index", 0);
+		mMediator.navigSelectedItem(fragmentIndex);
 	}
 
 	// @Override
@@ -104,7 +137,6 @@ public class MainActivity extends ActionBarActivity {
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
 				mToolbar, R.string.drawer_open, R.string.drawer_close);
 		mDrawerLayout.post(new Runnable() {
-
 			@Override
 			public void run() {
 				mDrawerToggle.syncState();
@@ -112,5 +144,14 @@ public class MainActivity extends ActionBarActivity {
 		});
 
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
+	}
+
+	@Override
+	public void onTrimMemory(int level) {
+		super.onTrimMemory(level);
+		switch (level) {
+		case ComponentCallbacks2.TRIM_MEMORY_BACKGROUND:
+			break;
+		}
 	}
 }
