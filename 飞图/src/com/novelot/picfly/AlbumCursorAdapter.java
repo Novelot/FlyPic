@@ -1,12 +1,14 @@
 package com.novelot.picfly;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.SoftReference;
-
-import com.novelot.piccache.BitmapDecoder;
+import java.io.OutputStream;
 import com.novelot.piccache.CacheInfo;
+import com.novelot.piccache.FlyPicLruCache;
 import com.novelot.util.MD5;
 
 import android.content.ContentResolver;
@@ -18,12 +20,10 @@ import android.graphics.BitmapFactory.Options;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 
 public class AlbumCursorAdapter extends CursorAdapter {
@@ -33,14 +33,16 @@ public class AlbumCursorAdapter extends CursorAdapter {
 	private int ivHeight;
 	private ContentResolver mResolver;
 	// private LruCache<String, SoftReference<Bitmap>> mCache;
-	private LruCache<String, Bitmap> mCache2;
+	private FlyPicLruCache mCache2;
+	private Context context;
 
 	public AlbumCursorAdapter(Context context, Cursor c) {
 		super(context, c, true);
+		this.context = context;
 		mResolver = context.getContentResolver();
 		// mCache = new LruCache<String, SoftReference<Bitmap>>(1024 * 1024 *
 		// 2);
-		mCache2 = new LruCache<String, Bitmap>(1024 * 1024);
+		mCache2 = new FlyPicLruCache(1024 * 1024);
 
 		ivWidth = CacheInfo.getInstance().screenWidth / 2;
 		if (ivWidth <= 0)
@@ -75,12 +77,15 @@ public class AlbumCursorAdapter extends CursorAdapter {
 		String cacheKey = createCacheKey(strUri, ivWidth, ivHeight);
 		Bitmap bitmap = mCache2.get(cacheKey);
 		if (bitmap == null) {
-			bitmap = getThumbnailBitmap(mResolver,
-					Uri.parse("file://" + strUri), ivWidth, ivHeight);
+			bitmap = getThumbnailBitmap(mResolver, strUri, ivWidth, ivHeight);
 			mCache2.put(cacheKey, bitmap);
+		} else {
+			Log.v(TAG, "from membery cache");
 		}
-		if (bitmap != null)
+		if (bitmap != null) {
+			Log.v(TAG, "cache size is " + mCache2.usedSize() + "K");
 			iv.setImageBitmap(bitmap);
+		}
 	}
 
 	@Override
@@ -96,10 +101,19 @@ public class AlbumCursorAdapter extends CursorAdapter {
 	 * @param resolver
 	 * @return
 	 */
-	private static Bitmap getThumbnailBitmap(ContentResolver resolver, Uri uri,
+	private Bitmap getThumbnailBitmap(ContentResolver resolver, String strUri,
 			int ivWidth, int ivHeight) {
 		Bitmap bitmap = null;
+		String cacheKey = createCacheKey(strUri, ivWidth, ivHeight);
+
+		File tmpFile = new File(context.getCacheDir(), cacheKey);
+		if (tmpFile != null && tmpFile.exists()) {
+			bitmap = BitmapFactory.decodeFile(tmpFile.getAbsolutePath());
+			Log.v(TAG, "from disk cache");
+			return bitmap;
+		}
 		try {
+			Uri uri = Uri.parse("file://" + strUri);
 			InputStream is = resolver.openInputStream(uri);
 			Rect outPadding = null;
 			Options opts = new Options();
@@ -134,8 +148,22 @@ public class AlbumCursorAdapter extends CursorAdapter {
 					* opts.inSampleSize, true);
 			if (bitmap.getHeight() > ivHeight)
 				bitmap = Bitmap.createBitmap(bitmap, 0, 0, ivWidth, ivHeight);
+
+			Log.v(TAG, "from src");
 			try {
 				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			/* save to disk */
+			File outFile = new File(context.getCacheDir(), cacheKey);
+			OutputStream out = new BufferedOutputStream(new FileOutputStream(
+					outFile));
+			bitmap.compress(Bitmap.CompressFormat.PNG, 60, out);
+			try {
+				out.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
@@ -161,5 +189,34 @@ public class AlbumCursorAdapter extends CursorAdapter {
 	private String createCacheKey(String strUri, int width, int height) {
 		return MD5.getMD5(MD5.getMD5(strUri) + width + height);
 	}
+
+	// void getBitmapFromDisk() {
+	// new AsyncTask<ViewHolder, Void, Bitmap>() {
+	// private ViewHolder v;
+	//
+	// @Override
+	// protected Bitmap doInBackground(ViewHolder... params) {
+	// v = params[0];
+	// return mFakeImageLoader.getImage();
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(Bitmap result) {
+	// super.onPostExecute(result);
+	// if (v.position == position) {
+	// // If this item hasn't been recycled already, hide the
+	// // progress and set and show the image
+	// // v.progress.setVisibility(View.GONE);
+	// v.icon.setVisibility(View.VISIBLE);
+	// v.icon.setImageBitmap(result);
+	// }
+	// }
+	// }.execute(holder);
+	// }
+	//
+	// static class ViewHolder {
+	// int postion;
+	// ImageView icon;
+	// }
 
 }
