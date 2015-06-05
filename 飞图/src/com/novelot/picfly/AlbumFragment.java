@@ -1,5 +1,7 @@
 package com.novelot.picfly;
 
+import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
+
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,6 +63,7 @@ public class AlbumFragment extends Fragment /*
 		if (mAdapter != null) {
 			gridView.setAdapter(mAdapter);
 		}
+//		gridView.setOnScrollListener(new PauseOnScrollListener(imageLoader, pauseOnScroll, pauseOnFling));
 		gridView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override

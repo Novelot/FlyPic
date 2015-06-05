@@ -14,7 +14,7 @@ public class FlyPicLruCache extends LruCache<String, Bitmap> {
 
 	@Override
 	protected int sizeOf(String key, Bitmap value) {
-		int byteCount = value.getByteCount() / 1024;
+		int byteCount = value.getByteCount();
 		Log.v(TAG, "the bitmap size is " + byteCount + "K");
 		mUsedSize += byteCount;
 		return byteCount;

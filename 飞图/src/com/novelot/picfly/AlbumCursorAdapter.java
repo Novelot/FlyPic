@@ -7,9 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import com.novelot.piccache.BitmapLoader;
 import com.novelot.piccache.CacheInfo;
+import com.novelot.piccache.Configs;
+import com.novelot.piccache.DefaultDecoder;
 import com.novelot.piccache.FlyPicLruCache;
+import com.novelot.piccache.Utils;
 import com.novelot.util.MD5;
+import com.novelot.util.SystemUtils;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -42,7 +48,8 @@ public class AlbumCursorAdapter extends CursorAdapter {
 		mResolver = context.getContentResolver();
 		// mCache = new LruCache<String, SoftReference<Bitmap>>(1024 * 1024 *
 		// 2);
-		mCache2 = new FlyPicLruCache(1024 * 1024);
+		int cacheSize = SystemUtils.getAvailMemory(context) * 1024 * 1024 / 8;
+		mCache2 = new FlyPicLruCache(cacheSize);
 
 		ivWidth = CacheInfo.getInstance().screenWidth / 2;
 		if (ivWidth <= 0)
@@ -74,18 +81,31 @@ public class AlbumCursorAdapter extends CursorAdapter {
 		String strUri = cursor.getString(cursor
 				.getColumnIndex(MediaStore.Images.Media.DATA));
 		Log.v(TAG, strUri);
-		String cacheKey = createCacheKey(strUri, ivWidth, ivHeight);
-		Bitmap bitmap = mCache2.get(cacheKey);
-		if (bitmap == null) {
-			bitmap = getThumbnailBitmap(mResolver, strUri, ivWidth, ivHeight);
-			mCache2.put(cacheKey, bitmap);
-		} else {
-			Log.v(TAG, "from membery cache");
+		// String cacheKey = createCacheKey(strUri, ivWidth, ivHeight);
+		// Bitmap bitmap = mCache2.get(cacheKey);
+		// if (bitmap == null) {
+		// bitmap = getThumbnailBitmap(mResolver, strUri, ivWidth, ivHeight);
+		// mCache2.put(cacheKey, bitmap);
+		// } else {
+		// Log.v(TAG, "from membery cache");
+		// }
+		// if (bitmap != null) {
+		// Log.v(TAG, "cache size is " + mCache2.usedSize() + "K");
+		// iv.setImageBitmap(bitmap);
+		// }
+
+		/* 使用框架v1 */
+		if (!BitmapLoader.getInstance().isInited()) {
+			Configs configs = new Configs();
+			configs.cacheDir = context.getCacheDir().getAbsolutePath();
+			int availMemoryMs = SystemUtils.getAvailMemory(context);
+			int bitmapCacheMemory = availMemoryMs * 1024 * 1024 / 8;
+			configs.cacheSize = bitmapCacheMemory;
+			configs.decoder = new DefaultDecoder();
+			BitmapLoader.getInstance().init(configs);
 		}
-		if (bitmap != null) {
-			Log.v(TAG, "cache size is " + mCache2.usedSize() + "K");
-			iv.setImageBitmap(bitmap);
-		}
+
+		BitmapLoader.getInstance().display(strUri, iv, ivWidth, ivHeight);
 	}
 
 	@Override
